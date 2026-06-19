@@ -1,0 +1,37 @@
+---
+- name: Detect architecture
+  ansible.builtin.set_fact:
+    _arch: "{{ 'aarch64' if ansible_architecture == 'aarch64' else 'x86_64' }}"
+    _os: "{{ 'apple-darwin' if ansible_os_family == 'Darwin' else 'unknown-linux-gnu' }}"
+
+- name: Resolve latest release tag
+  when: ssh_bastion_version == "latest"
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/tstapler/escutcheon/releases/latest
+    return_content: true
+  register: _gh_release
+
+- name: Set resolved version
+  ansible.builtin.set_fact:
+    _version: "{{ _gh_release.json.tag_name if ssh_bastion_version == 'latest' else ssh_bastion_version }}"
+
+- name: Download escutcheon release archive
+  ansible.builtin.get_url:
+    url: "https://github.com/tstapler/escutcheon/releases/download/{{ _version }}/escutcheon-{{ _version }}-{{ _arch }}-{{ _os }}.tar.gz"
+    dest: /tmp/escutcheon.tar.gz
+    mode: "0644"
+
+- name: Extract binaries
+  ansible.builtin.unarchive:
+    src: /tmp/escutcheon.tar.gz
+    dest: "{{ ssh_bastion_install_dir }}"
+    remote_src: true
+    include:
+      - knock-ssh
+      - knock-sshd
+
+- name: Set binary capabilities (Linux only)
+  when: ansible_system == "Linux"
+  ansible.builtin.command:
+    cmd: setcap cap_net_raw+ep {{ ssh_bastion_install_dir }}/knock-sshd
+  changed_when: true

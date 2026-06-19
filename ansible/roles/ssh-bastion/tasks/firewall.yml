@@ -1,0 +1,23 @@
+---
+- name: Block default SSH port in ufw
+  when: ssh_bastion_firewall_backend == "ufw"
+  community.general.ufw:
+    rule: deny
+    port: "{{ ssh_bastion_ssh_port }}"
+    proto: tcp
+
+- name: Remove default SSH service in firewalld
+  when: ssh_bastion_firewall_backend == "firewalld"
+  ansible.posix.firewalld:
+    service: ssh
+    state: disabled
+    permanent: true
+    immediate: true
+
+- name: Drop default SSH port in iptables
+  when: ssh_bastion_firewall_backend == "iptables"
+  ansible.builtin.iptables:
+    chain: INPUT
+    protocol: tcp
+    destination_port: "{{ ssh_bastion_ssh_port }}"
+    jump: DROP

@@ -1,0 +1,12 @@
+---
+- name: Install escutcheon binaries
+  ansible.builtin.include_tasks: install.yml
+
+- name: Configure knock-sshd
+  ansible.builtin.include_tasks: configure.yml
+
+- name: Enable knock-sshd service
+  ansible.builtin.include_tasks: service.yml
+
+- name: Harden SSH — drop default port 22 from firewall
+  ansible.builtin.include_tasks: firewall.yml

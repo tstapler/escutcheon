@@ -1,0 +1,10 @@
+# knock-sshd configuration — managed by Ansible
+sequence  = {{ ssh_bastion_knock_sequence | tojson }}
+proto     = "{{ ssh_bastion_knock_proto }}"
+open_port = {{ ssh_bastion_ssh_port }}
+ttl_secs  = {{ ssh_bastion_ttl_secs }}
+open_secs = {{ ssh_bastion_open_secs }}
+firewall  = "{{ ssh_bastion_firewall_backend }}"
+{% if ssh_bastion_interface %}
+interface = "{{ ssh_bastion_interface }}"
+{% endif %}

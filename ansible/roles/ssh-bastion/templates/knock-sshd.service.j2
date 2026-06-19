@@ -1,0 +1,16 @@
+[Unit]
+Description=escutcheon port-knock daemon
+After=network.target
+
+[Service]
+ExecStart={{ ssh_bastion_install_dir }}/knock-sshd --config /etc/escutcheon/sshd.toml
+Restart=on-failure
+RestartSec=5s
+# AmbientCapabilities lets knock-sshd use raw sockets without running as root
+AmbientCapabilities=CAP_NET_RAW
+CapabilityBoundingSet=CAP_NET_RAW
+NoNewPrivileges=true
+DynamicUser=true
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,20 @@
+galaxy_info:
+  role_name: ssh_bastion
+  author: tstapler
+  description: Install and configure escutcheon (knock-sshd) with firewall hardening
+  license: MIT
+  min_ansible_version: "2.14"
+  platforms:
+    - name: Ubuntu
+      versions: ["22.04", "24.04"]
+    - name: Fedora
+      versions: all
+    - name: MacOSX
+      versions: all
+  galaxy_tags:
+    - security
+    - ssh
+    - networking
+    - firewall
+
+dependencies: []

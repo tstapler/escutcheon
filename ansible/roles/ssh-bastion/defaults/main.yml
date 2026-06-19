@@ -1,0 +1,25 @@
+---
+# Port sequence clients must knock before SSH is opened
+ssh_bastion_knock_sequence: [7000, 8000, 9000]
+ssh_bastion_knock_proto: tcp
+
+# Port to open after successful knock
+ssh_bastion_ssh_port: 22
+
+# How long (seconds) to keep SSH open after knock
+ssh_bastion_open_secs: 30
+
+# Knock TTL — how long (seconds) to wait between knock steps before resetting
+ssh_bastion_ttl_secs: 10
+
+# Firewall backend: ufw | firewalld | iptables | nftables | pf
+ssh_bastion_firewall_backend: "{{ 'ufw' if ansible_os_family == 'Debian' else 'firewalld' }}"
+
+# Network interface to listen on (empty = auto-detect)
+ssh_bastion_interface: ""
+
+# Where to install the knock-sshd binary
+ssh_bastion_install_dir: /usr/local/bin
+
+# Version tag to install (or "latest" to use HEAD)
+ssh_bastion_version: latest

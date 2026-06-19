@@ -1,0 +1,17 @@
+---
+- name: Install systemd unit (Linux)
+  when: ansible_system == "Linux"
+  ansible.builtin.template:
+    src: knock-sshd.service.j2
+    dest: /etc/systemd/system/knock-sshd.service
+    mode: "0644"
+  notify:
+    - Reload systemd
+    - Restart knock-sshd
+
+- name: Enable and start knock-sshd (Linux)
+  when: ansible_system == "Linux"
+  ansible.builtin.systemd:
+    name: knock-sshd
+    enabled: true
+    state: started

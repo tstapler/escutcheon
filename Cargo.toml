@@ -1,0 +1,30 @@
+[package]
+name = "escutcheon"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75"
+description = "Port knocking without the C daemon — Rust-native knockd replacement with zero libpcap dependency"
+license = "MIT"
+repository = "https://github.com/tstapler/escutcheon"
+
+[[bin]]
+name = "knock-ssh"
+path = "src/bin/knock-ssh/main.rs"
+
+[[bin]]
+name = "knock-sshd"
+path = "src/bin/knock-sshd/main.rs"
+
+[dependencies]
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
+serde = { version = "1", features = ["derive"] }
+toml = "0.8"
+dirs = "5"
+pnet = "0.35"
+pnet_datalink = "0.35"
+pnet_packet = "0.35"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "time"] }
+dashmap = "6"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }

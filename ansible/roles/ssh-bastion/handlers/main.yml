@@ -1,0 +1,9 @@
+---
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Restart knock-sshd
+  ansible.builtin.systemd:
+    name: knock-sshd
+    state: restarted
