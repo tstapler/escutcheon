@@ -1,0 +1,42 @@
+---
+- name: Validate at least one key is provided
+  ansible.builtin.assert:
+    that: >
+      (ssh_bastion_ansible_pubkey | length > 0) or
+      (ssh_bastion_fido2_pubkeys | length > 0) or
+      (ssh_bastion_op_pubkeys | length > 0)
+    fail_msg: >
+      No authorized keys configured. Set at least one of:
+        ssh_bastion_ansible_pubkey (ed25519 for headless Ansible)
+        ssh_bastion_fido2_pubkeys  (list of sk-ed25519/sk-ecdsa-sk keys)
+        ssh_bastion_op_pubkeys     (list of ed25519 keys from 1Password)
+
+- name: Ensure .ssh directory exists for bastion user
+  ansible.builtin.file:
+    path: "/home/{{ ssh_bastion_user }}/.ssh"
+    state: directory
+    owner: "{{ ssh_bastion_user }}"
+    group: "{{ ssh_bastion_user }}"
+    mode: "0700"
+
+- name: Deploy Ansible ed25519 key
+  ansible.posix.authorized_key:
+    user: "{{ ssh_bastion_user }}"
+    key: "{{ ssh_bastion_ansible_pubkey }}"
+    comment: "ansible@{{ inventory_hostname }}"
+    state: present
+  when: ssh_bastion_ansible_pubkey | length > 0
+
+- name: Deploy FIDO2 hardware keys
+  ansible.posix.authorized_key:
+    user: "{{ ssh_bastion_user }}"
+    key: "{{ item }}"
+    state: present
+  loop: "{{ ssh_bastion_fido2_pubkeys }}"
+
+- name: Deploy 1Password-managed keys
+  ansible.posix.authorized_key:
+    user: "{{ ssh_bastion_user }}"
+    key: "{{ item }}"
+    state: present
+  loop: "{{ ssh_bastion_op_pubkeys }}"

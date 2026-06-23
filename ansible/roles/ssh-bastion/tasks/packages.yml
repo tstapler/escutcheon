@@ -1,0 +1,50 @@
+---
+- name: Install SSH server and firewall packages (apt)
+  when: ansible_pkg_mgr == 'apt'
+  block:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Install openssh-server
+      ansible.builtin.apt:
+        name: openssh-server
+        state: present
+
+    - name: Install ufw
+      ansible.builtin.apt:
+        name: ufw
+        state: present
+      when: ssh_bastion_firewall == 'ufw'
+
+    - name: Install firewalld
+      ansible.builtin.apt:
+        name: firewalld
+        state: present
+      when: ssh_bastion_firewall == 'firewalld'
+
+    - name: Install nftables
+      ansible.builtin.apt:
+        name: nftables
+        state: present
+      when: ssh_bastion_firewall == 'nftables'
+
+- name: Install SSH server and firewall packages (dnf/yum)
+  when: ansible_pkg_mgr in ['dnf', 'yum']
+  block:
+    - name: Install openssh-server
+      ansible.builtin.package:
+        name: openssh-server
+        state: present
+
+    - name: Install firewalld
+      ansible.builtin.package:
+        name: firewalld
+        state: present
+      when: ssh_bastion_firewall == 'firewalld'
+
+- name: macOS — openssh is built-in, no packages needed
+  when: ansible_system == 'Darwin'
+  ansible.builtin.debug:
+    msg: "macOS: using system openssh and pf — no packages to install"

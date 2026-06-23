@@ -1,0 +1,32 @@
+---
+- name: Validate ssh_bastion_port is set
+  ansible.builtin.assert:
+    that: ssh_bastion_port | int > 0
+    fail_msg: >
+      ssh_bastion_port is not set. Resolve it from 1Password:
+        lookup('community.general.onepassword', 'Escutcheon/' + inventory_hostname, field='ssh_port') | int
+
+- name: Deploy hardened sshd_config
+  ansible.builtin.template:
+    src: sshd_config.j2
+    dest: "{{ '/etc/ssh/sshd_config' if ansible_system == 'Linux' else '/etc/ssh/sshd_config' }}"
+    owner: root
+    group: root
+    mode: "0600"
+    validate: /usr/sbin/sshd -t -f %s
+  notify: Restart sshd
+
+- name: Enable and start sshd (Linux systemd)
+  when: ansible_system == 'Linux'
+  ansible.builtin.systemd:
+    name: "{{ 'ssh' if ansible_pkg_mgr == 'apt' else 'sshd' }}"
+    enabled: true
+    state: started
+
+- name: Enable sshd (macOS launchd)
+  when: ansible_system == 'Darwin'
+  ansible.builtin.command:
+    cmd: launchctl load -w /System/Library/LaunchDaemons/ssh.plist
+  register: _launchctl
+  changed_when: _launchctl.rc == 0
+  failed_when: false

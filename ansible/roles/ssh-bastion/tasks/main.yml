@@ -1,12 +1,32 @@
 ---
-- name: Install escutcheon binaries
-  ansible.builtin.include_tasks: install.yml
+- name: Install packages
+  ansible.builtin.include_tasks: packages.yml
+  tags: [ssh-bastion, packages]
 
-- name: Configure knock-sshd
-  ansible.builtin.include_tasks: configure.yml
-
-- name: Enable knock-sshd service
-  ansible.builtin.include_tasks: service.yml
-
-- name: Harden SSH — drop default port 22 from firewall
+- name: Configure firewall
   ansible.builtin.include_tasks: firewall.yml
+  tags: [ssh-bastion, firewall]
+
+- name: Harden sshd
+  ansible.builtin.include_tasks: sshd.yml
+  tags: [ssh-bastion, sshd]
+
+- name: Deploy authorized keys
+  ansible.builtin.include_tasks: authorized_keys.yml
+  tags: [ssh-bastion, keys]
+
+- name: Install and configure knock-sshd
+  when: not ssh_bastion_use_tailscale
+  block:
+    - ansible.builtin.include_tasks: install.yml
+    - ansible.builtin.include_tasks: configure.yml
+    - ansible.builtin.include_tasks: service.yml
+  tags: [ssh-bastion, knock-sshd]
+
+- name: Tailscale variant — open port permanently
+  when: ssh_bastion_use_tailscale
+  ansible.builtin.include_tasks: tailscale_variant.yml
+  tags: [ssh-bastion, tailscale]
+
+- name: Flush handlers so sshd restarts before role exits
+  ansible.builtin.meta: flush_handlers

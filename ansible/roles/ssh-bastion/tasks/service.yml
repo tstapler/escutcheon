@@ -1,17 +1,45 @@
 ---
 - name: Install systemd unit (Linux)
-  when: ansible_system == "Linux"
+  when: ansible_system == 'Linux'
   ansible.builtin.template:
     src: knock-sshd.service.j2
     dest: /etc/systemd/system/knock-sshd.service
+    owner: root
+    group: root
     mode: "0644"
   notify:
     - Reload systemd
     - Restart knock-sshd
 
 - name: Enable and start knock-sshd (Linux)
-  when: ansible_system == "Linux"
+  when: ansible_system == 'Linux'
   ansible.builtin.systemd:
     name: knock-sshd
     enabled: true
     state: started
+    daemon_reload: true
+
+- name: Install launchd plist (macOS)
+  when: ansible_system == 'Darwin'
+  ansible.builtin.template:
+    src: knock-sshd.plist.j2
+    dest: /Library/LaunchDaemons/com.tstapler.knock-sshd.plist
+    owner: root
+    group: wheel
+    mode: "0644"
+  notify: Restart knock-sshd (macOS)
+
+- name: Load and enable knock-sshd (macOS)
+  when: ansible_system == 'Darwin'
+  ansible.builtin.command:
+    cmd: launchctl load -w /Library/LaunchDaemons/com.tstapler.knock-sshd.plist
+  register: _launchctl
+  changed_when: _launchctl.rc == 0
+  failed_when: false
+
+- name: Verify knock-sshd is running
+  ansible.builtin.command:
+    cmd: pgrep -x knock-sshd
+  register: _pgrep
+  changed_when: false
+  failed_when: _pgrep.rc != 0

@@ -1,0 +1,51 @@
+# sshd_config — managed by Ansible (escutcheon ssh-bastion role)
+# Do not edit manually.
+
+Port {{ ssh_bastion_port }}
+AddressFamily inet
+ListenAddress 0.0.0.0
+
+# ── Authentication ──────────────────────────────────────────────────────────
+PermitRootLogin no
+PubkeyAuthentication yes
+AuthorizedKeysFile .ssh/authorized_keys
+PasswordAuthentication no
+PermitEmptyPasswords no
+ChallengeResponseAuthentication no
+KbdInteractiveAuthentication no
+UsePAM yes
+
+# Allow only the configured user
+AllowUsers {{ ssh_bastion_user }}
+
+MaxAuthTries {{ ssh_bastion_max_auth_tries }}
+LoginGraceTime {{ ssh_bastion_login_grace_time }}
+
+# ── Session ─────────────────────────────────────────────────────────────────
+ClientAliveInterval {{ ssh_bastion_client_alive_interval }}
+ClientAliveCountMax {{ ssh_bastion_client_alive_count_max }}
+
+AllowAgentForwarding {{ ssh_bastion_allow_agent_forwarding }}
+AllowTcpForwarding {{ ssh_bastion_allow_tcp_forwarding }}
+X11Forwarding no
+PermitTunnel no
+GatewayPorts no
+
+# ── Cryptography (borrowed from devsec.hardening) ───────────────────────────
+Ciphers {{ ssh_bastion_ciphers | join(',') }}
+MACs {{ ssh_bastion_macs | join(',') }}
+KexAlgorithms {{ ssh_bastion_kex_algorithms | join(',') }}
+HostKeyAlgorithms ssh-ed25519,rsa-sha2-512,rsa-sha2-256
+
+# ── Keys ────────────────────────────────────────────────────────────────────
+HostKey /etc/ssh/ssh_host_ed25519_key
+HostKey /etc/ssh/ssh_host_rsa_key
+
+# ── Logging ─────────────────────────────────────────────────────────────────
+SyslogFacility AUTH
+LogLevel {{ ssh_bastion_log_level }}
+
+# ── Misc ────────────────────────────────────────────────────────────────────
+PrintMotd no
+AcceptEnv LANG LC_*
+Subsystem sftp /usr/lib/openssh/sftp-server

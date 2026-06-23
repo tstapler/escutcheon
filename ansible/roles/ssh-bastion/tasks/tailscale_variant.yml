@@ -1,0 +1,21 @@
+---
+- name: Assert Tailscale is installed
+  ansible.builtin.command:
+    cmd: which tailscale
+  changed_when: false
+  failed_when: false
+  register: _tailscale_check
+
+- name: Fail if Tailscale not installed
+  ansible.builtin.fail:
+    msg: "Tailscale must be installed before running with ssh_bastion_use_tailscale=true"
+  when: _tailscale_check.rc != 0
+
+- name: Open SSH port permanently on Tailscale interface (ufw)
+  when: ssh_bastion_firewall == 'ufw'
+  community.general.ufw:
+    rule: allow
+    port: "{{ ssh_bastion_port }}"
+    proto: tcp
+    interface: tailscale0
+    direction: in

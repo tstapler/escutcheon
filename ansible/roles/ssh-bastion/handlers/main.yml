@@ -4,6 +4,25 @@
     daemon_reload: true
 
 - name: Restart knock-sshd
+  when: ansible_system == 'Linux'
   ansible.builtin.systemd:
     name: knock-sshd
     state: restarted
+
+- name: Restart knock-sshd (macOS)
+  when: ansible_system == 'Darwin'
+  ansible.builtin.command:
+    cmd: launchctl kickstart -k system/com.tstapler.knock-sshd
+  failed_when: false
+
+- name: Restart sshd
+  when: ansible_system == 'Linux'
+  ansible.builtin.systemd:
+    name: "{{ 'ssh' if ansible_pkg_mgr == 'apt' else 'sshd' }}"
+    state: restarted
+
+- name: Restart sshd (macOS)
+  when: ansible_system == 'Darwin'
+  ansible.builtin.command:
+    cmd: launchctl kickstart -k system/com.openssh.sshd
+  failed_when: false
